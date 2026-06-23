@@ -32,7 +32,7 @@ rhoam-together/
 ## Getting Started
 
 ### Prerequisites
-- Go 1.21+
+- Go 1.26+
 - Node.js 18+
 - PostgreSQL 14+
 
