@@ -56,8 +56,16 @@ Create `.env` files in both `backend/` and `frontend/` directories (see Phase 2 
 
 ## Development
 
-- Backend: `cd backend && go run main.go`
-- Frontend: `cd frontend && npm start`
+This application uses make commands to start the development servers.
+
+- `make start`: Start both backend and frontend dev servers
+- `make dev`: Start both backend and frontend dev servers
+- `make backend`: Start only backend (Go on http://localhost:8080)
+- `make frontend`: Start only frontend (React on http://localhost:3000)
+- `make install`: Install dependencies for both backend and frontend
+- `make backend-install`: Install Go dependencies
+- `make frontend-install`: Install Node dependencies
+- `make stop`: Stop all development servers
 
 ## Deployment
 
