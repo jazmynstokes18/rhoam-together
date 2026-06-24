@@ -4,28 +4,50 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
+	"rhoam-together/config"
+	"rhoam-together/handlers"
+	"rhoam-together/middleware"
+
+	"github.com/gorilla/mux"
 )
 
-func healthHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, `{"status":"ok"}`)
-}
-
 func main() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/health", healthHandler)
+	cfg := config.Load()
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
+	router := mux.NewRouter()
 
-	addr := fmt.Sprintf(":%s", port)
-	log.Printf("Server starting on http://localhost%s", addr)
+	// Apply CORS middleware
+	router.Use(middleware.CORSMiddleware(cfg.FrontendURL))
 
-	if err := http.ListenAndServe(addr, mux); err != nil {
+	// Health check endpoint
+	router.HandleFunc("/health", handlers.HealthCheck).Methods("GET")
+
+	// API routes (will be added in later phases)
+	api := router.PathPrefix("/api").Subrouter()
+
+	// Auth endpoints (Phase 4)
+	auth := api.PathPrefix("/auth").Subrouter()
+	auth.HandleFunc("/signup", notImplementedHandler).Methods("POST")
+	auth.HandleFunc("/login", notImplementedHandler).Methods("POST")
+
+	// Trips endpoints (Phase 6)
+	trips := api.PathPrefix("/trips").Subrouter()
+	trips.HandleFunc("", notImplementedHandler).Methods("GET", "POST")
+	trips.HandleFunc("/{id}", notImplementedHandler).Methods("GET", "PUT", "DELETE")
+
+	// WebSocket endpoint (Phase 6)
+	router.HandleFunc("/ws", notImplementedHandler).Methods("GET")
+
+	addr := fmt.Sprintf(":%s", cfg.Port)
+	log.Printf("🚀 Rhoam Together API starting on http://localhost%s", addr)
+	log.Printf("📍 Environment: %s", cfg.Environment)
+	log.Printf("🌐 CORS allowed origin: %s", cfg.FrontendURL)
+
+	if err := http.ListenAndServe(addr, router); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func notImplementedHandler(w http.ResponseWriter, r *http.Request) {
+	middleware.RespondWithError(w, http.StatusNotImplemented, "Endpoint not yet implemented")
 }
