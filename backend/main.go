@@ -30,10 +30,7 @@ func main() {
 	log.Println("✓ Database connection successful")
 
 	router := mux.NewRouter()
-
-	// Apply CORS middleware
-	router.Use(middleware.CORSMiddleware(cfg.FrontendURL))
-
+	corsHandler := middleware.CORSMiddleware(cfg.FrontendURL, cfg.Environment)(router)
 	// Health check endpoint
 	router.HandleFunc("/health", handlers.HealthCheck).Methods("GET")
 
@@ -62,6 +59,10 @@ func main() {
 	log.Printf("🚀 Rhoam Together API starting on http://localhost%s", addr)
 	log.Printf("📍 Environment: %s", cfg.Environment)
 	log.Printf("🌐 CORS allowed origin: %s", cfg.FrontendURL)
+	err = http.ListenAndServe(":8080", corsHandler)
+	if err != nil {
+		log.Printf("🚨 Error at the listen and Serve: %s", err.Error())
+	}
 
 	if err := http.ListenAndServe(addr, router); err != nil {
 		log.Fatal(err)
